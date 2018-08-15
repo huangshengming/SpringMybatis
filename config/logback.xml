@@ -1,0 +1,100 @@
+<configuration scanPeriod="30 seconds" scan="true">
+    <contextName>${MY_CONTEXT_NAME:-test}</contextName>
+    <property name="LOG_DIR_INT" value="${LOG_DIR:-./logs}" />
+
+
+    <appender name="ErrorLogFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR_INT}/error.log</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR_INT}/error.log.%d{yyyy-MM-dd}
+            </fileNamePattern>
+            <maxHistory>14</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%-5level [%d{yyyy-MM-dd HH:mm:ss.SSS}] %logger{35} - %msg%n</pattern>
+            <outputPatternAsHeader>true</outputPatternAsHeader>
+        </encoder>
+    </appender>
+
+    <appender name="InfoAndErrorLogFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR_INT}/info.log</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR_INT}/info.log.%d{yyyy-MM-dd}
+            </fileNamePattern>
+            <maxHistory>14</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern> [%thread] %-5level [%d{yyyy-MM-dd HH:mm:ss.SSS}] %logger{35} - %msg%n</pattern>
+            <outputPatternAsHeader>true</outputPatternAsHeader>
+        </encoder>
+    </appender>
+
+    <appender name="DebugLogFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR_INT}/debug.log</file>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR_INT}/debug.log.%d{yyyy-MM-dd}
+            </fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern> [%thread] %-5level [%d{yyyy-MM-dd HH:mm:ss.SSS}] %logger{35} - %msg%n</pattern>
+            <outputPatternAsHeader>true</outputPatternAsHeader>
+        </encoder>
+    </appender>
+
+    <appender name="Stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>DEBUG</level>
+        </filter>
+        <encoder>
+            <pattern> [%thread] %-5level [%d{yyyy-MM-dd HH:mm:ss.SSS}] %logger{35}[%L] [uid:%X{uid}] - %msg%n</pattern>
+            <outputPatternAsHeader>true</outputPatternAsHeader>
+        </encoder>
+    </appender>
+
+    <!-- 异步输出 -->
+    <appender name ="ERROR_ASYNC" class= "ch.qos.logback.classic.AsyncAppender">
+        <!-- 不丢失日志.默认的,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 -->
+        <!--<discardingThreshold >0</discardingThreshold>-->
+        <!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+        <queueSize>1024</queueSize>
+        <!-- 添加附加的appender,最多只能添加一个 -->
+        <appender-ref ref ="ErrorLogFile"/>
+    </appender>
+    <!-- 异步输出 -->
+    <appender name ="INFO_ASYNC" class= "ch.qos.logback.classic.AsyncAppender">
+        <!-- 不丢失日志.默认的,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 -->
+        <!--<discardingThreshold >0</discardingThreshold>-->
+        <!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+        <queueSize>1024</queueSize>
+        <!-- 添加附加的appender,最多只能添加一个 -->
+        <appender-ref ref ="InfoAndErrorLogFile"/>
+    </appender>
+    <!-- 异步输出 -->
+    <appender name ="DEBUG_ASYNC" class= "ch.qos.logback.classic.AsyncAppender">
+        <!-- 不丢失日志.默认的,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 -->
+        <!--<discardingThreshold >0</discardingThreshold>-->
+        <!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+        <queueSize>1024</queueSize>
+        <!-- 添加附加的appender,最多只能添加一个 -->
+        <appender-ref ref ="DebugLogFile"/>
+    </appender>
+    <root level="DEBUG">
+        <appender-ref ref="Stdout" />
+        <appender-ref ref="ERROR_ASYNC" />
+        <appender-ref ref="INFO_ASYNC" />
+        <appender-ref ref="DEBUG_ASYNC" />
+    </root>
+</configuration>

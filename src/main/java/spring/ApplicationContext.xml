@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx.xsd http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd">
+
+    <bean id="kbeHikariConfig" class="com.zaxxer.hikari.HikariConfig">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver" />
+        <property name="jdbcUrl" value="jdbc:mysql://127.0.0.1:3306/kbe?useUnicode=true&amp;characterEncoding=UTF-8" />
+        <property name="username" value="root" />
+        <property name="password" value="123456" />
+        <property name="connectionTimeout" value="10000" />
+        <property name="maximumPoolSize" value="5" />
+        <property name="minimumIdle" value="5" />
+        <property name="poolName" value="fps_kbe" />
+        <property name="initializationFailFast" value="true" />
+        <property name="leakDetectionThreshold" value="300000" />
+    </bean>
+
+    <bean id="fps_kbeSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="fps_kbeDataSource" />
+        <property name="configLocation" value="classpath:mybatis/mybatis-fps_kbe.xml" />
+    </bean>
+    <!-- 配置数据源 -->
+    <bean id="fps_kbeDataSource" class="com.zaxxer.hikari.HikariDataSource">
+        <constructor-arg ref="kbeHikariConfig" />
+    </bean>
+
+    <bean id="springMapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!--指定会话工厂，如果当前上下文中只定义了一个则该属性可省去 -->
+        <property name="sqlSessionFactoryBeanName" value="fps_kbeSqlSessionFactory" />
+        <!-- 指定要自动扫描接口的基础包，实现接口 -->
+        <property name="basePackage" value="mybatis.*"> </property>
+    </bean>
+    <mybatis:scan base-package="mybatis" annotation="com.spring.FpsKbe" factory-ref="fps_kbeSqlSessionFactory"/>
+
+    <bean id="insTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="fps_kbeDataSource" />
+        <qualifier value="fps_kbe" />
+    </bean>
+    <bean id="insTransactionTemplate" class="org.springframework.transaction.support.TransactionTemplate">
+        <property name="transactionManager" ref="insTransactionManager"/>
+        <property name="propagationBehaviorName" value="PROPAGATION_REQUIRED"/>
+    </bean>
+    <tx:annotation-driven transaction-manager="insTransactionManager" />
+
+</beans>
